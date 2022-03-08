@@ -1,0 +1,3 @@
+passphrase: "my passphrase"
+algodUrl: "https://mainnet-api.algonode.cloud"
+indexerUrl: "https://mainnet-idx.algonode.cloud"
