@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"github.com/algorand/go-algorand-sdk/crypto"
 	"github.com/algorand/go-algorand-sdk/future"
 	"github.com/rs/zerolog"
@@ -11,11 +10,13 @@ import (
 	"os"
 )
 
-var assetsToSend = []uint64{
+const (
+	reserve = "A3OWTJUKUWDRQ54UTEW4N6U7ALQTZEWG2XGVGAPKL22WKJYBJHFX2SRT4M"
+)
+
+var assetIDs = []uint64{
 	1092064840,
 }
-
-const recipientAccount = "UCURP277N3KJVSKVWVJX7I4UUQ4DNAQ6ITP3JOPJ77VWJIMJZYVKKXK6WQ"
 
 func main() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stdout})
@@ -27,38 +28,39 @@ func main() {
 		panic(err)
 	}
 
-	for _, id := range assetsToSend {
-		sendTx, err := future.MakeAssetTransferTxn(
+	for _, assetID := range assetIDs {
+		log.Info().Msgf("Setting reserve. address=%s assetId=%d", conf.Account.Address.String(), assetID)
+
+		transaction, err := future.MakeAssetConfigTxn(
 			conf.Account.Address.String(),
-			recipientAccount,
-			1000000,
 			nil,
 			txParams,
-			"",
-			id,
+			assetID,
+			conf.Account.Address.String(),
+			reserve,
+			conf.Account.Address.String(),
+			conf.Account.Address.String(),
+			false,
 		)
 		if err != nil {
 			panic(err)
 		}
 
-		txID, signedTxn, err := crypto.SignTransaction(conf.Account.PrivateKey, sendTx)
+		txID, signedTxn, err := crypto.SignTransaction(conf.Account.PrivateKey, transaction)
 		if err != nil {
-			log.Error().Msgf("Failed to sign transaction: %s", err)
 			panic(err)
 		}
 
-		sendResponseTxID, err := conf.AlgodClient.SendRawTransaction(signedTxn).Do(context.Background())
+		_, err = conf.AlgodClient.SendRawTransaction(signedTxn).Do(context.Background())
 		if err != nil {
-			log.Error().Msgf("failed to send transaction: %s", err)
 			panic(err)
 		}
 
 		_, err = future.WaitForConfirmation(conf.AlgodClient, txID, 4, context.Background())
 		if err != nil {
-			log.Error().Msgf("Error waiting for confirmation on txID: %s", txID)
 			panic(err)
 		}
 
-		fmt.Printf("completed send for %d. tx: %s\n", id, sendResponseTxID)
+		log.Info().Msgf("updated reserve %d", assetID)
 	}
 }

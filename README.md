@@ -16,8 +16,10 @@ go run <script name>/main.go
 
 where `script name` is one of the following:
 
-* mass-opt-in
-* mass-send
+* cid-to-reserve
 * create-asa
+* decode-transaction
 * get-account-info
 * get-asa-ids
+* mass-opt-in
+* mass-send
