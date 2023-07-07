@@ -61,5 +61,4 @@ func main() {
 
 		fmt.Printf("completed opt-in for %d. tx: %s\n", id, sendResponseTxID)
 	}
-
 }
